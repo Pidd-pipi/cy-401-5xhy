@@ -60,6 +60,12 @@ export class Contract {
   @JoinColumn({ name: 'freelancerId' })
   freelancer: User;
 
+  @Column({ type: 'datetime', nullable: true })
+  buyerSignedAt: Date | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  freelancerSignedAt: Date | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -33,7 +33,7 @@
             v-for="bid in bidStore.requirementBids"
             :key="bid.id"
             :bid="bid"
-            :show-actions="isOwner"
+            :show-actions="isOwner && !biddingClosed"
             @accept="acceptBid"
             @reject="rejectBid"
           />
@@ -54,10 +54,22 @@
             <el-form-item label="提案内容">
               <el-input v-model="bidForm.proposal" type="textarea" :rows="5" />
             </el-form-item>
-            <el-button type="primary" :disabled="!auth.isAuthenticated.value" @click="submitBid">
-              提交报价
+            <el-button
+              type="primary"
+              :disabled="!auth.isAuthenticated.value || biddingClosed"
+              @click="submitBid"
+            >
+              {{ biddingClosed ? '该需求已决标' : '提交报价' }}
             </el-button>
           </el-form>
+        </el-card>
+
+        <el-card v-if="pendingContract" shadow="never" class="section">
+          <template #header>中标合同</template>
+          <p class="muted">报价已采纳，合同待双方签署生效。</p>
+          <RouterLink :to="`/contracts/${pendingContract.id}`">
+            <el-button type="primary">前往签署 {{ pendingContract.contractNo }}</el-button>
+          </RouterLink>
         </el-card>
       </el-col>
     </el-row>
@@ -65,8 +77,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import { contractApi } from '@/api/contract';
 import BidCard from '@/components/common/BidCard.vue';
 import SkillTag from '@/components/common/SkillTag.vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
@@ -74,12 +88,16 @@ import UserAvatar from '@/components/common/UserAvatar.vue';
 import { useAuth } from '@/hooks/useAuth';
 import { useBidStore } from '@/stores/bid';
 import { useRequirementStore } from '@/stores/requirement';
+import type { Contract } from '@/types';
+import { ContractStatus, RequirementStatus } from '@/types/enums';
 import { formatCurrency } from '@/utils/format';
 
 const props = defineProps<{ id: string }>();
+const router = useRouter();
 const requirementStore = useRequirementStore();
 const bidStore = useBidStore();
 const auth = useAuth();
+const requirementContracts = ref<Contract[]>([]);
 const bidForm = reactive({
   amount: 3000,
   durationDays: 7,
@@ -89,30 +107,73 @@ const bidForm = reactive({
 
 const requirement = computed(() => requirementStore.currentRequirement);
 const isOwner = computed(() => requirement.value?.publisherId === auth.user.value?.id);
+const biddingClosed = computed(() =>
+  [
+    RequirementStatus.PendingSign,
+    RequirementStatus.InProgress,
+    RequirementStatus.PendingReview,
+    RequirementStatus.Completed,
+    RequirementStatus.Cancelled
+  ].includes(requirement.value?.status as RequirementStatus)
+);
+const pendingContract = computed(
+  () =>
+    requirementContracts.value.find(c => c.status === ContractStatus.PendingSign) ||
+    requirementContracts.value[0]
+);
 
 async function submitBid() {
   if (!auth.isAuthenticated.value) {
     ElMessage.warning('请先登录');
     return;
   }
-  await bidStore.submitBid({ ...bidForm, requirementId: props.id });
-  bidForm.proposal = '';
-  ElMessage.success('报价已提交');
+  try {
+    await bidStore.submitBid({ ...bidForm, requirementId: props.id });
+    bidForm.proposal = '';
+    ElMessage.success('报价已提交');
+  } catch (error) {
+    ElMessage.error((error as Error).message || '报价提交失败');
+  }
 }
 
 async function acceptBid(id: string) {
-  await bidStore.acceptBid(id);
-  await requirementStore.fetchDetail(props.id);
-  ElMessage.success('已采纳报价');
+  try {
+    const bid = await bidStore.acceptBid(id);
+    await requirementStore.fetchDetail(props.id);
+    await loadContracts();
+    ElMessage.success('已采纳报价，待签合同已生成');
+    if (pendingContract.value) {
+      void router.push(`/contracts/${pendingContract.value.id}`);
+    }
+    return bid;
+  } catch (error) {
+    ElMessage.error((error as Error).message || '采纳失败，请稍后重试');
+  }
 }
 
 async function rejectBid(id: string) {
-  await bidStore.rejectBid(id);
-  ElMessage.success('已拒绝报价');
+  try {
+    await bidStore.rejectBid(id);
+    ElMessage.success('已拒绝报价');
+  } catch (error) {
+    ElMessage.error((error as Error).message || '操作失败，请稍后重试');
+  }
+}
+
+async function loadContracts() {
+  requirementContracts.value = await contractApi.byRequirement(props.id);
 }
 
 onMounted(async () => {
-  await Promise.all([requirementStore.fetchDetail(props.id), bidStore.fetchByRequirement(props.id)]);
+  try {
+    await Promise.all([
+      requirementStore.fetchDetail(props.id),
+      bidStore.fetchByRequirement(props.id),
+      loadContracts()
+    ]);
+  } catch (error) {
+    ElMessage.error((error as Error).message || '详情加载失败');
+  }
 });
 </script>
 

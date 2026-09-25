@@ -17,6 +17,9 @@ export const contractApi = {
   mine() {
     return http.get<unknown, Contract[]>('/contracts/mine');
   },
+  byRequirement(requirementId: string) {
+    return http.get<unknown, Contract[]>(`/contracts/requirement/${requirementId}`);
+  },
   detail(id: string) {
     return http.get<unknown, Contract>(`/contracts/${id}`);
   },
@@ -28,5 +31,8 @@ export const contractApi = {
   },
   complete(id: string) {
     return http.patch<unknown, Contract>(`/contracts/${id}/complete`);
+  },
+  terminate(id: string) {
+    return http.patch<unknown, Contract>(`/contracts/${id}/terminate`);
   }
 };

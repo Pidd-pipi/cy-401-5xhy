@@ -29,10 +29,17 @@ export const useContractStore = defineStore('contract', () => {
 
   async function signContract(id: string) {
     currentContract.value = await contractApi.sign(id);
+    return currentContract.value;
   }
 
   async function completeContract(id: string) {
     currentContract.value = await contractApi.complete(id);
+    return currentContract.value;
+  }
+
+  async function terminateContract(id: string) {
+    currentContract.value = await contractApi.terminate(id);
+    return currentContract.value;
   }
 
   return {
@@ -44,6 +51,7 @@ export const useContractStore = defineStore('contract', () => {
     fetchDetail,
     createContract,
     signContract,
-    completeContract
+    completeContract,
+    terminateContract
   };
 });

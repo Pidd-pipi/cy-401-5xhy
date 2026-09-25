@@ -44,14 +44,14 @@ export class BidController {
 
   @Patch(':id/accept')
   @UseGuards(JwtAuthGuard)
-  accept(@Param('id') id: string) {
-    return this.bidService.accept(id);
+  accept(@Param('id') id: string, @Req() req: Request & { user: { sub: string } }) {
+    return this.bidService.accept(id, req.user.sub);
   }
 
   @Patch(':id/reject')
   @UseGuards(JwtAuthGuard)
-  reject(@Param('id') id: string) {
-    return this.bidService.reject(id);
+  reject(@Param('id') id: string, @Req() req: Request & { user: { sub: string } }) {
+    return this.bidService.reject(id, req.user.sub);
   }
 
   @Patch(':id/withdraw')

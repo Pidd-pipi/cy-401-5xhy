@@ -14,6 +14,7 @@ const labels: Record<string, string> = {
   [RequirementStatus.Draft]: '草稿',
   [RequirementStatus.Open]: '待报价',
   [RequirementStatus.Bidding]: '报价中',
+  [RequirementStatus.PendingSign]: '待签署',
   [RequirementStatus.InProgress]: '进行中',
   [RequirementStatus.PendingReview]: '待验收',
   [RequirementStatus.Completed]: '已完成',
@@ -22,7 +23,6 @@ const labels: Record<string, string> = {
   [BidStatus.Accepted]: '已采纳',
   [BidStatus.Rejected]: '已拒绝',
   [BidStatus.Withdrawn]: '已撤回',
-  [ContractStatus.PendingSign]: '待签署',
   [ContractStatus.Active]: '执行中',
   [ContractStatus.Terminated]: '已终止'
 };
