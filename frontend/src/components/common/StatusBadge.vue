@@ -14,13 +14,14 @@ const labels: Record<string, string> = {
   [RequirementStatus.Draft]: '草稿',
   [RequirementStatus.Open]: '待报价',
   [RequirementStatus.Bidding]: '报价中',
+  [RequirementStatus.PendingContract]: '待签合同',
   [RequirementStatus.InProgress]: '进行中',
   [RequirementStatus.PendingReview]: '待验收',
   [RequirementStatus.Completed]: '已完成',
   [RequirementStatus.Cancelled]: '已取消',
   [BidStatus.Pending]: '待审',
   [BidStatus.Accepted]: '已采纳',
-  [BidStatus.Rejected]: '已拒绝',
+  [BidStatus.Rejected]: '已失效',
   [BidStatus.Withdrawn]: '已撤回',
   [ContractStatus.PendingSign]: '待签署',
   [ContractStatus.Active]: '执行中',
@@ -44,7 +45,13 @@ const tagType = computed(() => {
   ) {
     return 'danger';
   }
-  if ([RequirementStatus.InProgress, ContractStatus.Active].includes(normalizedStatus.value as never)) {
+  if (
+    [
+      RequirementStatus.InProgress,
+      RequirementStatus.PendingContract,
+      ContractStatus.Active
+    ].includes(normalizedStatus.value as never)
+  ) {
     return 'warning';
   }
   return 'info';

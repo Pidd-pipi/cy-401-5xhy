@@ -19,6 +19,11 @@ export class ContractController {
     return this.contractService.findMine(req.user.sub);
   }
 
+  @Get('requirement/:requirementId')
+  findByRequirement(@Param('requirementId') requirementId: string) {
+    return this.contractService.findByRequirement(requirementId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.contractService.findOne(id);
@@ -32,8 +37,8 @@ export class ContractController {
 
   @Patch(':id/sign')
   @UseGuards(JwtAuthGuard)
-  sign(@Param('id') id: string) {
-    return this.contractService.sign(id);
+  sign(@Param('id') id: string, @Req() req: Request & { user: { sub: string } }) {
+    return this.contractService.sign(id, req.user.sub);
   }
 
   @Patch(':id/complete')

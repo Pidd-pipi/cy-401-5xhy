@@ -8,6 +8,7 @@
         <el-select v-model="model.status" clearable placeholder="全部状态" style="width: 150px">
           <el-option label="待报价" :value="RequirementStatus.Open" />
           <el-option label="报价中" :value="RequirementStatus.Bidding" />
+          <el-option label="待签合同" :value="RequirementStatus.PendingContract" />
           <el-option label="进行中" :value="RequirementStatus.InProgress" />
           <el-option label="待验收" :value="RequirementStatus.PendingReview" />
         </el-select>

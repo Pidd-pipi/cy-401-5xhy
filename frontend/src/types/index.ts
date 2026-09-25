@@ -69,6 +69,8 @@ export interface Contract {
   buyer?: User;
   freelancerId: string;
   freelancer?: User;
+  buyerSignedAt?: string | null;
+  freelancerSignedAt?: string | null;
   createdAt?: string;
 }
 

@@ -6,6 +6,7 @@ import type { Contract } from '@/types';
 export const useContractStore = defineStore('contract', () => {
   const contracts = ref<Contract[]>([]);
   const myContracts = ref<Contract[]>([]);
+  const requirementContracts = ref<Contract[]>([]);
   const currentContract = ref<Contract | null>(null);
 
   async function fetchContracts() {
@@ -14,6 +15,11 @@ export const useContractStore = defineStore('contract', () => {
 
   async function fetchMine() {
     myContracts.value = await contractApi.mine();
+  }
+
+  async function fetchByRequirement(requirementId: string) {
+    requirementContracts.value = await contractApi.byRequirement(requirementId);
+    return requirementContracts.value;
   }
 
   async function fetchDetail(id: string) {
@@ -29,18 +35,22 @@ export const useContractStore = defineStore('contract', () => {
 
   async function signContract(id: string) {
     currentContract.value = await contractApi.sign(id);
+    return currentContract.value;
   }
 
   async function completeContract(id: string) {
     currentContract.value = await contractApi.complete(id);
+    return currentContract.value;
   }
 
   return {
     contracts,
     myContracts,
+    requirementContracts,
     currentContract,
     fetchContracts,
     fetchMine,
+    fetchByRequirement,
     fetchDetail,
     createContract,
     signContract,
